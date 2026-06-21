@@ -338,4 +338,5 @@ async def sugestao(
     )
 
 
-bot.run("DISCORD_BOT_TOKEN")
+import os
+bot.run(os.getenv("DISCORD_TOKEN"))
