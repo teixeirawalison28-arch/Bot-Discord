@@ -142,8 +142,8 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 @bot.tree.command(name="soma", description="Soma dois números ou expressão")
 async def soma(
     interaction: discord.Interaction,
-    Primeiro_Numero: int,
-    Segundo_Numero: int,
+    primeiro_numero: int,
+    segundo_numero: int,
     expressao: str = None
 ):
     if expressao:
@@ -160,10 +160,10 @@ async def soma(
                 ephemeral=True
             )
     else:
-        resultado = Primeiro_Numero + Segundo_Numero
+        resultado = primeiro_numero + segundo_numero
 
         await interaction.response.send_message(
-            f"🧮 O Resultado de {Primeiro_Numero} + {Segundo_Numero} é = **{resultado}**",
+            f"🧮 O Resultado de {primeiro_numero} + {segundo_numero} é = **{resultado}**",
             ephemeral=True
         )
 
