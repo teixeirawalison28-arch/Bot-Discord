@@ -3,23 +3,8 @@ import discord
 from discord import app_commands
 import json
 import os
-from flask import Flask
-from threading import Thread
-
-app = Flask(__name__)
-
-@app.route("/")
-def home():
-    return "Phantom Bot Online!"
-
-def run_web():
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
-
-Thread(target=run_web).start()
 
 CONFIG_FILE = "config.json"
-
 
 def carregar_config():
     if os.path.exists(CONFIG_FILE):
