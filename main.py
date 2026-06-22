@@ -139,31 +139,18 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 # ===============================
 # COMANDOS
 # ===============================
-@bot.tree.command(name="soma", description="Soma dois números ou expressão")
-async def soma(
-    interaction: discord.Interaction,
-    primeiro_numero: int,
-    segundo_numero: int,
-    expressao: str = None
-):
-    if expressao:
-        try:
-            resultado = eval(expressao)
-
-            await interaction.response.send_message(
-                f"🧮 `{expressao}` = **{resultado}**",
-                ephemeral=True
-            )
-        except:
-            await interaction.response.send_message(
-                "❌ Expressão inválida!",
-                ephemeral=True
-            )
-    else:
-        resultado = primeiro_numero + segundo_numero
+@bot.tree.command(name="soma", description="Calcula uma expressão")
+async def soma(interaction: discord.Interaction, expressao: str):
+    try:
+        resultado = eval(expressao)
 
         await interaction.response.send_message(
-            f"🧮 O Resultado de {primeiro_numero} + {segundo_numero} é = **{resultado}**",
+            f"🧮 O Resultado de {expressao} = é **{resultado}**",
+            ephemeral=True
+        )
+    except:
+        await interaction.response.send_message(
+            "❌ Expressão inválida!",
             ephemeral=True
         )
 
