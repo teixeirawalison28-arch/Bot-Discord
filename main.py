@@ -139,19 +139,33 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 # ===============================
 # COMANDOS
 # ===============================
-@bot.tree.command(name="phantom", description="Primeiro comando do BOT")
-async def phantom(interaction: discord.Interaction):
-    await interaction.response.send_message(
-        f"Olá, {interaction.user.mention}! Eu sou o Phantom!"
-    )
+@bot.tree.command(name="soma", description="Soma dois números ou expressão")
+async def soma(
+    interaction: discord.Interaction,
+    Primeiro_Numero: int,
+    Segundo_Numero: int,
+    expressao: str = None
+):
+    if expressao:
+        try:
+            resultado = eval(expressao)
 
+            await interaction.response.send_message(
+                f"🧮 `{expressao}` = **{resultado}**",
+                ephemeral=True
+            )
+        except:
+            await interaction.response.send_message(
+                "❌ Expressão inválida!",
+                ephemeral=True
+            )
+    else:
+        resultado = numero1 + numero2
 
-@bot.tree.command(name="soma", description="Soma dois números")
-async def soma(interaction: discord.Interaction, numero1: int, numero2: int):
-    await interaction.response.send_message(
-        f"🧮 O resultado de {numero1} + {numero2} é = **{numero1 + numero2}**",
-        ephemeral=True
-    )
+        await interaction.response.send_message(
+            f"🧮 O Resultado de {numero1} + {numero2} é = **{resultado}**",
+            ephemeral=True
+        )
 
 
 @bot.tree.command(name="configurar_sugestao", description="Configurar canais")
