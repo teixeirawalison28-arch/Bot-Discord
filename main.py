@@ -170,7 +170,6 @@ bot = MeuPrimeiroBot()
     name="phantom_bot",
     description="Primeiro comando do BOT"
 )
-)
 async def phantombot(
     interaction: discord.Interaction
 ):
