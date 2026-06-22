@@ -149,18 +149,18 @@ class MeuPrimeiroBot(discord.Client):
 bot = MeuPrimeiroBot()
 
 # ===============================
-# PHANTOM
+# PHANTOM BOT
 # ===============================
 
 @bot.tree.command(
-    name="phantom",
+    name="phantom bot",
     description="Primeiro comando do BOT"
 )
-async def phantom(
+async def phantombot(
     interaction: discord.Interaction
 ):
     await interaction.response.send_message(
-        f"Olá, {interaction.user.mention}! Eu sou o Phantom!"
+        f"Olá, {interaction.user.mention}! Eu sou o Phantom BOT!"
     )
 
 
