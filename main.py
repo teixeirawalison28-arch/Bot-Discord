@@ -166,10 +166,10 @@ bot = MeuPrimeiroBot()
 # ===============================
 # PHANTOM BOT
 # ===============================
-
 @bot.tree.command(
-    name="phantom bot",
+    name="phantom_bot",
     description="Primeiro comando do BOT"
+)
 )
 async def phantombot(
     interaction: discord.Interaction
