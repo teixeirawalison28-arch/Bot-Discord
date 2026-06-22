@@ -1,15 +1,24 @@
-import random
 import discord
 from discord import app_commands
 import json
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 CONFIG_FILE = "config.json"
 
+
+# ===============================
+# CONFIG
+# ===============================
 def carregar_config():
     if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print("Erro ao carregar config:", e)
 
     return {
         "canal_sugestoes": None,
@@ -18,82 +27,101 @@ def carregar_config():
 
 
 def salvar_config(config):
-    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=4)
+    try:
+        with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=4)
+    except Exception as e:
+        print("Erro ao salvar config:", e)
 
 
 config = carregar_config()
 
 
+# ===============================
+# VIEW SUGESTÃO (SEGURA)
+# ===============================
 class SugestaoView(discord.ui.View):
-    def __init__(self, mensagem_publica_id):
+    def __init__(self, mensagem_publica_id: int):
         super().__init__(timeout=3600)
         self.mensagem_publica_id = mensagem_publica_id
 
     @discord.ui.button(label="Aceitar", emoji="✅", style=discord.ButtonStyle.green)
     async def aceitar(self, interaction: discord.Interaction, button: discord.ui.Button):
 
-        canal_publico = interaction.client.get_channel(config["canal_sugestoes"])
+        canal_id = config.get("canal_sugestoes")
+        if not canal_id:
+            return await interaction.response.send_message("❌ Canal não configurado.", ephemeral=True)
+
+        canal = interaction.client.get_channel(canal_id)
+        if not canal:
+            return await interaction.response.send_message("❌ Canal não encontrado.", ephemeral=True)
 
         try:
-            mensagem_publica = await canal_publico.fetch_message(self.mensagem_publica_id)
+            mensagem = await canal.fetch_message(self.mensagem_publica_id)
 
-            embed = mensagem_publica.embeds[0]
+            if not mensagem.embeds:
+                return await interaction.response.send_message("❌ Embed inválido.", ephemeral=True)
+
+            embed = mensagem.embeds[0]
             embed.color = discord.Color.green()
+            embed.set_field_at(0, name="Status", value="✅ APROVADA", inline=False)
 
-            embed.set_field_at(
-                0,
-                name="Status",
-                value="✅ APROVADA",
-                inline=False
-            )
+            await mensagem.edit(embed=embed)
 
-            await mensagem_publica.edit(embed=embed)
-
-        except:
-            pass
+        except Exception as e:
+            print("Erro aceitar sugestão:", e)
+            return await interaction.response.send_message("❌ Erro ao aprovar.", ephemeral=True)
 
         await interaction.message.edit(view=None)
-
         await interaction.response.send_message("✅ Sugestão aprovada!", ephemeral=True)
 
     @discord.ui.button(label="Recusar", emoji="❌", style=discord.ButtonStyle.red)
     async def recusar(self, interaction: discord.Interaction, button: discord.ui.Button):
 
-        canal_publico = interaction.client.get_channel(config["canal_sugestoes"])
+        canal_id = config.get("canal_sugestoes")
+        if not canal_id:
+            return await interaction.response.send_message("❌ Canal não configurado.", ephemeral=True)
+
+        canal = interaction.client.get_channel(canal_id)
+        if not canal:
+            return await interaction.response.send_message("❌ Canal não encontrado.", ephemeral=True)
 
         try:
-            mensagem_publica = await canal_publico.fetch_message(self.mensagem_publica_id)
+            mensagem = await canal.fetch_message(self.mensagem_publica_id)
 
-            embed = mensagem_publica.embeds[0]
+            if not mensagem.embeds:
+                return await interaction.response.send_message("❌ Embed inválido.", ephemeral=True)
+
+            embed = mensagem.embeds[0]
             embed.color = discord.Color.red()
+            embed.set_field_at(0, name="Status", value="❌ RECUSADA", inline=False)
 
-            embed.set_field_at(
-                0,
-                name="Status",
-                value="❌ RECUSADA",
-                inline=False
-            )
+            await mensagem.edit(embed=embed)
 
-            await mensagem_publica.edit(embed=embed)
-
-        except:
-            pass
+        except Exception as e:
+            print("Erro recusar sugestão:", e)
+            return await interaction.response.send_message("❌ Erro ao recusar.", ephemeral=True)
 
         await interaction.message.edit(view=None)
-
         await interaction.response.send_message("❌ Sugestão recusada!", ephemeral=True)
 
 
+# ===============================
+# BOT
+# ===============================
 class MeuPrimeiroBot(discord.Client):
     def __init__(self):
-        intents = discord.Intents.all()
+        intents = discord.Intents.default()
+        intents.message_content = True
+        intents.guilds = True
+
         super().__init__(intents=intents)
 
         self.tree = app_commands.CommandTree(self)
 
     async def setup_hook(self):
         await self.tree.sync()
+        print("✅ Slash commands sincronizados")
 
     async def on_ready(self):
         print(f"✅ BOT {self.user} iniciado com sucesso!")
@@ -101,8 +129,18 @@ class MeuPrimeiroBot(discord.Client):
 
 bot = MeuPrimeiroBot()
 
+
 # ===============================
-# PHANTOM
+# TOKEN (SEGURANÇA REAL)
+# ===============================
+TOKEN = os.getenv("DISCORD_TOKEN")
+
+if not TOKEN:
+    raise RuntimeError("❌ DISCORD_TOKEN não configurado no Render!")
+
+
+# ===============================
+# COMANDOS
 # ===============================
 @bot.tree.command(name="phantom", description="Primeiro comando do BOT")
 async def phantom(interaction: discord.Interaction):
@@ -111,29 +149,24 @@ async def phantom(interaction: discord.Interaction):
     )
 
 
-# ===============================
-# SOMA
-# ===============================
 @bot.tree.command(name="soma", description="Soma dois números")
 async def soma(interaction: discord.Interaction, numero1: int, numero2: int):
-    resultado = numero1 + numero2
-
     await interaction.response.send_message(
-        f"🧮 {numero1} + {numero2} = **{resultado}**",
+        f"🧮 {numero1} + {numero2} = **{numero1 + numero2}**",
         ephemeral=True
     )
 
 
-# ===============================
-# CONFIG SUGESTÃO
-# ===============================
 @bot.tree.command(name="configurar_sugestao", description="Configurar canais")
 @app_commands.default_permissions(administrator=True)
-async def configurar_sugestao(interaction: discord.Interaction, canal_sugestoes: discord.TextChannel, canal_logs: discord.TextChannel):
+async def configurar_sugestao(
+    interaction: discord.Interaction,
+    canal_sugestoes: discord.TextChannel,
+    canal_logs: discord.TextChannel
+):
 
     config["canal_sugestoes"] = canal_sugestoes.id
     config["canal_logs"] = canal_logs.id
-
     salvar_config(config)
 
     await interaction.response.send_message(
@@ -142,9 +175,6 @@ async def configurar_sugestao(interaction: discord.Interaction, canal_sugestoes:
     )
 
 
-# ===============================
-# AVISO
-# ===============================
 @bot.tree.command(name="aviso", description="Enviar aviso")
 @app_commands.default_permissions(administrator=True)
 async def aviso(interaction: discord.Interaction, titulo: str, mensagem: str, ping: bool = False):
@@ -152,25 +182,27 @@ async def aviso(interaction: discord.Interaction, titulo: str, mensagem: str, pi
     embed = discord.Embed(
         title=f"🚨 {titulo.upper()} 🚨",
         description=mensagem,
-        color=discord.Color.from_rgb(255, 60, 60)
+        color=discord.Color.red()
     )
 
     embed.add_field(
-        name="━━━━━━━━━━━━━━━━━━━━━━",
-        value="📢 Sistema Oficial de Avisos",
+        name="Sistema Oficial",
+        value="📢 Aviso automático do servidor",
         inline=False
     )
 
-    embed.set_footer(text=f"📌 Aviso enviado por {interaction.user}")
+    embed.set_footer(text=f"Por {interaction.user}")
 
-    content = "@everyone ⚠️ Novo aviso importante!" if ping else None
+    content = "@everyone ⚠️ Novo aviso!" if ping else None
 
     await interaction.channel.send(content=content, embed=embed)
-
     await interaction.response.send_message("✅ Aviso enviado!", ephemeral=True)
 
 
 # ===============================
-# BOT RUN (CORRETO)
+# RUN BOT (SEGURO)
 # ===============================
-bot.run(os.getenv("DISCORD_TOKEN"))
+try:
+    bot.run(TOKEN)
+except discord.errors.LoginFailure:
+    print("❌ Token inválido ou foi resetado!")
