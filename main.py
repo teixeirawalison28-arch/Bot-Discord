@@ -149,7 +149,7 @@ async def phantom(interaction: discord.Interaction):
 @bot.tree.command(name="soma", description="Soma dois números")
 async def soma(interaction: discord.Interaction, numero1: int, numero2: int):
     await interaction.response.send_message(
-        f"🧮 {numero1} + {numero2} = **{numero1 + numero2}**",
+        f"🧮 O resultado de {numero1} + {numero2} é = **{numero1 + numero2}**",
         ephemeral=True
     )
 
