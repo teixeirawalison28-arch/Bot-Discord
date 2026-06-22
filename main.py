@@ -38,7 +38,7 @@ config = carregar_config()
 
 
 # ===============================
-# VIEW SUGESTÃO (SEGURA)
+# VIEW SUGESTÃO
 # ===============================
 class SugestaoView(discord.ui.View):
     def __init__(self, mensagem_publica_id: int):
@@ -68,12 +68,12 @@ class SugestaoView(discord.ui.View):
 
             await mensagem.edit(embed=embed)
 
+            await interaction.message.edit(view=None)
+            await interaction.response.send_message("✅ Sugestão aprovada!", ephemeral=True)
+
         except Exception as e:
             print("Erro aceitar sugestão:", e)
-            return await interaction.response.send_message("❌ Erro ao aprovar.", ephemeral=True)
-
-        await interaction.message.edit(view=None)
-        await interaction.response.send_message("✅ Sugestão aprovada!", ephemeral=True)
+            await interaction.response.send_message("❌ Erro ao aprovar.", ephemeral=True)
 
     @discord.ui.button(label="Recusar", emoji="❌", style=discord.ButtonStyle.red)
     async def recusar(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -98,12 +98,12 @@ class SugestaoView(discord.ui.View):
 
             await mensagem.edit(embed=embed)
 
+            await interaction.message.edit(view=None)
+            await interaction.response.send_message("❌ Sugestão recusada!", ephemeral=True)
+
         except Exception as e:
             print("Erro recusar sugestão:", e)
-            return await interaction.response.send_message("❌ Erro ao recusar.", ephemeral=True)
-
-        await interaction.message.edit(view=None)
-        await interaction.response.send_message("❌ Sugestão recusada!", ephemeral=True)
+            await interaction.response.send_message("❌ Erro ao recusar.", ephemeral=True)
 
 
 # ===============================
@@ -131,12 +131,9 @@ bot = MeuPrimeiroBot()
 
 
 # ===============================
-# TOKEN (SEGURANÇA REAL)
+# TOKEN (SEM CRASH)
 # ===============================
 TOKEN = os.getenv("DISCORD_TOKEN")
-
-if not TOKEN:
-    raise RuntimeError("❌ DISCORD_TOKEN não configurado no Render!")
 
 
 # ===============================
@@ -159,8 +156,7 @@ async def soma(interaction: discord.Interaction, numero1: int, numero2: int):
 
 @bot.tree.command(name="configurar_sugestao", description="Configurar canais")
 @app_commands.default_permissions(administrator=True)
-async def configurar_sugestao(
-    interaction: discord.Interaction,
+async def configurar_sugestao(interaction: discord.Interaction,
     canal_sugestoes: discord.TextChannel,
     canal_logs: discord.TextChannel
 ):
@@ -200,9 +196,9 @@ async def aviso(interaction: discord.Interaction, titulo: str, mensagem: str, pi
 
 
 # ===============================
-# RUN BOT (SEGURO)
+# RUN
 # ===============================
-try:
+if not TOKEN:
+    print("❌ DISCORD_TOKEN não configurado no Render")
+else:
     bot.run(TOKEN)
-except discord.errors.LoginFailure:
-    print("❌ Token inválido ou foi resetado!")
