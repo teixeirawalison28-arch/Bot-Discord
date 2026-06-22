@@ -160,10 +160,10 @@ async def soma(
                 ephemeral=True
             )
     else:
-        resultado = numero1 + numero2
+        resultado = Primeiro_Numero + Segundo_Numero
 
         await interaction.response.send_message(
-            f"🧮 O Resultado de {numero1} + {numero2} é = **{resultado}**",
+            f"🧮 O Resultado de {Primeiro_Numero} + {Segundo_Numero} é = **{resultado}**",
             ephemeral=True
         )
 
